@@ -5,8 +5,11 @@ This module provides a Zesty disk resource that can be attached to any EC2 insta
 
 1. Include the Zesty Disk Configuration module in your code:
 ```hcl
-module "zesty-disk" {
-  source = "github.com/zestyco/zbs-tf-config"
+module "zesty_disk" {
+  source            = "../zbs-tf-module-disk"
+  source            = "github.com/zestyco/zbs-tf-config"
+  aws_region        = var.aws_region
+  zesty_disk_config = var.zesty_disk_config
 }
 ```
 
@@ -15,7 +18,7 @@ module "zesty-disk" {
 variable "zesty_disk_config" {
   type = map(any)
   default = {
-    api_key      = ""
+    api_key      = "myzestyapikey"
     mount_point  = "/mnt"
     device_name  = "/dev/sdb"
     initial_size = 10
@@ -28,11 +31,11 @@ variable "zesty_disk_config" {
 ```hcl
 resource "aws_instance" "this" {
   ebs_block_device {
+    volume_type = "gp2"
     device_name = var.zesty_disk_config.device_name
     volume_size = var.zesty_disk_config.initial_size
     tags        = var.volume_tags
-    volume_type = "gp2"
-    snapshot_id = lookup(var.zesty_disk_snapshot_ids, var.aws_region)
+    snapshot_id = module.zesty_disk.snapshot_id
   }
 
   # Keeps ebs_block_device unchanged on next iterations
@@ -45,6 +48,31 @@ resource "aws_instance" "this" {
 1. Add a `user_data` to your instance to install the Zesty Disk Agent and mount the new volume
 ```hcl
 resource "aws_instance" "this" {
-  user_data     = module.zesty_disk.data.cloudinit_config.config.rendered
+  user_data = module.zesty_disk.user_data
+}
+```
+
+## Combining it all to a working example
+```hcl
+resource "aws_instance" "this" {
+  ami           = "ami-063d4ab14480ac177"
+  instance_type = "t3.micro"
+  user_data = module.zesty_disk.user_data
+
+  # Note: this is *not* the root block device
+  ebs_block_device {
+    volume_type = "gp2"
+    device_name = var.zesty_disk_config.device_name
+    volume_size = var.zesty_disk_config.initial_size
+    tags        = var.volume_tags
+    snapshot_id = module.zesty_disk.snapshot_id
+  }
+
+}
+
+module "zesty_disk" {
+  source            = "../zbs-tf-module-disk"
+  aws_region        = var.aws_region
+  zesty_disk_config = var.zesty_disk_config
 }
 ```
