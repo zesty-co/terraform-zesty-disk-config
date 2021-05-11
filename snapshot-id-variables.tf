@@ -1,3 +1,7 @@
+locals {
+  snapshot_id = lookup(var.zesty_disk_snapshot_ids, var.aws_region)
+}
+
 variable "zesty_disk_snapshot_ids" {
   type = map(string)
   default = {
