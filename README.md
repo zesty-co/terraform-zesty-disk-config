@@ -13,7 +13,7 @@ module "zesty_disk" {
 }
 ```
 
-1. Add Zesty Disk Configuration object to your `variables.tf`:
+2. Add Zesty Disk Configuration object to your `variables.tf`:
 ```hcl
 variable "zesty_disk_config" {
   type = map(any)
@@ -26,7 +26,7 @@ variable "zesty_disk_config" {
 }
 ```
 
-1. Add an `ebs_block_device` to your instance:
+3. Add an `ebs_block_device` to your instance:
 
 ```hcl
 resource "aws_instance" "this" {
@@ -45,7 +45,7 @@ resource "aws_instance" "this" {
 }
 ```
 
-1. Add a `user_data` to your instance to install the Zesty Disk Agent and mount the new volume
+4. Add a `user_data` to your instance to install the Zesty Disk Agent and mount the new volume
 ```hcl
 resource "aws_instance" "this" {
   user_data = module.zesty_disk.user_data
