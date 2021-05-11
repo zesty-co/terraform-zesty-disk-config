@@ -71,7 +71,7 @@ resource "aws_instance" "this" {
 }
 
 module "zesty_disk" {
-  source            = "../zbs-tf-module-disk"
+  source            = "https://github.com/zesty-co/terraform-zesty-disk-config"
   aws_region        = var.aws_region
   zesty_disk_config = var.zesty_disk_config
 }
