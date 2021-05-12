@@ -1,7 +1,7 @@
 # Zesty Block Device Terraform Module
 This module provides a Zesty disk resource that can be attached to any EC2 instance
 
-## Usage
+## Usage (example)
 
 ```hcl
 resource "aws_instance" "this" {
@@ -29,7 +29,7 @@ module "zesty_disk" {
 
 ---
 
-## Breakdown of added components
+## Breakdown of required components
 
 1. Include the Zesty Disk Configuration module in your code:
 ```hcl
