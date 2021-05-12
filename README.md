@@ -89,6 +89,7 @@ resource "aws_instance" "this" {
 <details>
 <summary>Adding additional Zesty Disks</summary>
 If you with to add more than one Zesty disks (up to three are supported), here's an expanded configuration:
+
 ```hcl
 resource "aws_instance" "this" {
   ami           = "ami-063d4ab14480ac177"
@@ -132,6 +133,7 @@ module "zesty_disk" {
 ```
 
 This would also require an additional configuration for the additional disk(s):
+
 ```hcl
 # variables.tf:
 # Note that api_key is not required as the same key can be used from the first disk config object
