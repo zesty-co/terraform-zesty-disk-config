@@ -6,8 +6,7 @@ This module provides a Zesty disk resource that can be attached to any EC2 insta
 1. Include the Zesty Disk Configuration module in your code:
 ```hcl
 module "zesty_disk" {
-  source            = "../zbs-tf-module-disk"
-  source            = "github.com/zestyco/zbs-tf-config"
+  source            = "github.com/zesty-co/terraform-zesty-disk-config"
   aws_region        = var.aws_region
   zesty_disk_config = var.zesty_disk_config
 }
