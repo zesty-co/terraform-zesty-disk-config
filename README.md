@@ -87,7 +87,7 @@ resource "aws_instance" "this" {
 ```
 
 <details>
-<summary>Adding additional Zesty Disks</summary>
+<summary>Initiating a server with multiple Zesty Disks (max 3)</summary>
 If you with to add more than one Zesty disks (up to three are supported), here's an expanded configuration:
 
 ```hcl
