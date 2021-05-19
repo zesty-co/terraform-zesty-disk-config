@@ -16,3 +16,13 @@ variable "zesty_disk_config" {
     initial_size = 10
   }
 }
+
+variable "zesty_disk_config_2" {
+  type    = map(any)
+  default = {}
+}
+
+variable "zesty_disk_config_3" {
+  type    = map(any)
+  default = {}
+}
