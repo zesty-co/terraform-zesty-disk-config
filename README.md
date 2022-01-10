@@ -12,7 +12,7 @@ resource "aws_instance" "this" {
   # Note: this is *not* the root block device
   ebs_block_device {
     # Supported volume types are gp2, and gp3
-    volume_type = "gp2"
+    volume_type = "gp3"
     device_name = var.zesty_disk_config.device_name
     # The initial volume size given to Zesty Disk. The recommendation is at least 10GB
     volume_size = var.zesty_disk_config.initial_size
