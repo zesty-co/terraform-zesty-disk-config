@@ -14,7 +14,7 @@ resource "aws_instance" "this" {
     # Supported volume types are gp2, and gp3
     volume_type = "gp3"
     device_name = var.zesty_disk_config.device_name
-    # The initial volume size given to Zesty Disk. The recommendation is at least 10GB
+    # The initial volume size given to Zesty Disk. The recommendation is at least 15GB
     volume_size = var.zesty_disk_config.initial_size
     tags        = var.volume_tags
     snapshot_id = module.zesty_disk.snapshot_id
@@ -54,7 +54,7 @@ variable "zesty_disk_config" {
     api_key      = "myzestyapikey"
     mount_point  = "/mnt"
     device_name  = "/dev/sdb"
-    initial_size = 10
+    initial_size = 15
   }
 }
 ```
@@ -143,7 +143,7 @@ variable "zesty_disk_config_2" {
   default = {
     mount_point  = ""
     device_name  = ""
-    initial_size = 10
+    initial_size = 15
   }
 }
 
@@ -152,7 +152,7 @@ variable "zesty_disk_config_3" {
   default = {
     mount_point  = ""
     device_name  = ""
-    initial_size = 10
+    initial_size = 15
   }
 }
 ```
