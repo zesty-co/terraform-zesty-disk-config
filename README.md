@@ -14,6 +14,7 @@ Or for quick creation and test use the managed deployment
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.55 |
+| <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | >= 2.3.2 |
 
 ## Usage (example) Self Managed
 ``` hcl
@@ -127,10 +128,12 @@ module "zesty-disk" {
 | <a name="input_managed_deployment"></a> [managed_deployment](#input\_managed_deployment) | Used to auto deploy EC2 instance with Zesty-Disk Agent | `bool` | `false` | no |
 | <a name="input_enable_ssm"></a> [enable_ssm](#input\_enable_ssm) | Use to create iam-role with SSM-CORE policy for ssm access to the instance only work when [managed_deployment](#input\_managed_deployment) set to true | `bool` | `false` | no |
 | <a name="input_kay_pair"></a> [kay_pair](#input\_kay_pair) | Used for old fasion ssh access with user created key-pair by in the AWS Console | `string` | `null` | no |
-| <a name="input_disks"></a> [disks](#input\_disks) | List of Disk to configure the  | `list(object({name = string,size = number,disk_type = string,mount_point = string}))` | `[{name = "/dev/sdb",size = 15,disk_type = "gp3",mount_point = "/mnt"}]` | no |
+| <a name="input_disks"></a> [disks](#input\_disks) | List of Disk to mount using ZestyDisk | `list(object({name = string,size = number,disk_type = string,mount_point = string}))` | `[{name = "/dev/sdb",size = 15,disk_type = "gp3",mount_point = "/mnt"}]` | no |
+| <a name="input_instance_type"></a> [instance_type](#input\_instance_type) | EC2 instance type | `string` | `null` | no |
+| <a name="input_iam_instance_profile"></a> [iam_instance_profile](#input\_iam_instance_profile) | Used your owen iam-role not working with [enable_ssm](#input\_enable_ssm) set to true |`string` | `null` | no |
 
 ## Authors
 
-Module is maintained by [Omer Hamerman](https://github.com/omerxx) with help from [Regev Agabi](https://github.com/ragabi-ops).
+Module is maintained by [Omer Hamerman](https://github.com/omerxx) with help of [Regev Agabi](https://github.com/ragabi-ops).
 
 ![alt text](https://zesty.co/wp-content/uploads/2020/10/cropped-logo-1.png)
