@@ -2,6 +2,6 @@ output "user_data" {
   value = data.cloudinit_config.config.rendered
 }
 
-output "snapshot_id" {
-  value = local.snapshot_id
+output "instance_public_ip" {
+  value = try(aws_instance.this[0].public_ip, "")
 }

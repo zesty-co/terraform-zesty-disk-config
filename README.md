@@ -1,23 +1,75 @@
 # Zesty Block Device Terraform Module
 This module provides a Zesty disk resource that can be attached to any EC2 instance
+Or for quick creation and test use the managed deployment
 
-## Usage (example)
+## Requirements
 
-```hcl
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.55 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.55 |
+
+## Usage (example) Self Managed
+``` hcl
+# If you with to add more than one Zesty disks (up to three are supported
+variable "disks" {
+  default = [
+      {
+        disk_type = "gp3"
+        mount_point = "/mnt"
+        name = "/dev/sdb"
+        size = 15
+      },
+      {
+        disk_type = "gp3"
+        mount_point = "/mnt2"
+        name = "/dev/sdc"
+        size = 20
+      }
+  ]
+}
+
+data "aws_ami" "this" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+
+  owners = ["099720109477"] # Canonical
+}
+
+module "zesty-disk" {
+    source     = "github.com/zesty-co/terraform-zesty-disk-config"
+    aws_region = var.aws_region
+    api_key    = "my-zesty-api-key"
+    disks      = var.disks
+}
+
 resource "aws_instance" "this" {
-  ami           = "ami-063d4ab14480ac177"
+  ami           = data.aws_ami.this.id
   instance_type = "t3.micro"
-  user_data = module.zesty_disk.user_data
+  user_data     = module.zesty-disk.user_data
 
   # Note: this is *not* the root block device
-  ebs_block_device {
-    # Supported volume types are gp2, and gp3
-    volume_type = "gp3"
-    device_name = var.zesty_disk_config.device_name
-    # The initial volume size given to Zesty Disk. The recommendation is at least 15GB
-    volume_size = var.zesty_disk_config.initial_size
-    tags        = var.volume_tags
-    snapshot_id = module.zesty_disk.snapshot_id
+  dynamic "ebs_block_device" {
+    for_each = var.disks
+    content {
+      device_name           = ebs_block_device.value.name
+      volume_size           = ebs_block_device.value.size
+      volume_type           = ebs_block_device.value.disk_type
+      delete_on_termination = true
+      tags                  = merge(var.ebs_tags, {
+        ZestyDisk = true
+      })
+    }
   }
 
   # Make sure lifecycle is set to ignore ebs_block_device (and others if you have) to prevent them from being changed on future Terraform runs
@@ -26,135 +78,59 @@ resource "aws_instance" "this" {
   }
 }
 
-module "zesty_disk" {
-  source            = "github.com/zesty-co/terraform-zesty-disk-config"
-  aws_region        = var.aws_region
-  zesty_disk_config = var.zesty_disk_config
-}
 ```
-
----
-
-## Breakdown of required components
-
-1. Include the Zesty Disk Configuration module in your code:
-```hcl
-module "zesty_disk" {
-  source            = "github.com/zesty-co/terraform-zesty-disk-config"
-  aws_region        = var.aws_region
-  zesty_disk_config = var.zesty_disk_config
-}
-```
-
-2. Add Zesty Disk Configuration object to your `variables.tf`:
-```hcl
-variable "zesty_disk_config" {
-  type = map(any)
-  default = {
-    api_key      = "myzestyapikey"
-    mount_point  = "/mnt"
-    device_name  = "/dev/sdb"
-    initial_size = 15
-  }
-}
-```
-
-3. Add an `ebs_block_device` to your instance:
+## Usage (example) Managed Deployment
 
 ```hcl
-resource "aws_instance" "this" {
-  # ebs_block_device is a non-root volume that's provisioned with the instance, you can have up to three that are configured as Zesty Disks
-  ebs_block_device {
-    volume_type = "gp2"
-    device_name = var.zesty_disk_config.device_name
-    volume_size = var.zesty_disk_config.initial_size
-    tags        = var.volume_tags
-    snapshot_id = module.zesty_disk.snapshot_id
-  }
+module "zesty-disk" {
+    source             = "github.com/zesty-co/terraform-zesty-disk-config"
+    aws_region         = var.aws_region
+    api_key            = "my-zesty-api-key"
+    managed_deployment = true
 
-  # Keeps ebs_block_device unchanged on next iterations
-  lifecycle {
-    ignore_changes = [ebs_block_device]
-  }
+    # Optional Parameters
+
+    # EC2 Instance type defaults to t2.micro
+    instance_type      = m5.large
+
+    # Create iam-role with AWS-SSMCore policy for connecting the instance using ssm instead of ssh
+    enable_ssm         = true
+
+    # For old fashion ssh access (make sure the default vpc sg allow inbound rule for ssh)
+    kay_pair           = "my-key-pair"
+
+    # The default value for disks creates one ebs_block_device
+    # In case you want to create more then one disk
+    # Supported volume types are gp2, and gp3
+    # Max
+    disks               = [
+      {
+        disk_type = "gp3"
+        mount_point = "/mnt"
+        name = "/dev/sdb"
+        size = 15
+      },
+      {
+        disk_type = "gp3"
+        mount_point = "/mnt2"
+        name = "/dev/sdc"
+        size = 20
+      }
+    ]
 }
 ```
 
-4. Add a `user_data` to your instance to install the Zesty Disk Agent and mount the new volume
-```hcl
-resource "aws_instance" "this" {
-  user_data = module.zesty_disk.user_data
-}
-```
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_aws_region"></a> [aws_region](#input\_aws_region) | AWS Region on which the resources are getting deployed | `string` | `null` | yes |
+| <a name="input_api_key"></a> [api_key](#input\_api_key) | The api_key can be found in the Zesty Disk dashboard by clicking Install Collector | `string` | `null` | yes |
+| <a name="input_managed_deployment"></a> [managed_deployment](#input\_managed_deployment) | Used to auto deploy EC2 instance with Zesty-Disk Agent | `bool` | `false` | no |
+| <a name="input_enable_ssm"></a> [enable_ssm](#input\_enable_ssm) | Use to create iam-role with SSM-CORE policy for ssm access to the instance only work when [managed_deployment](#input\_managed_deployment) set to true | `bool` | `false` | no |
+| <a name="input_kay_pair"></a> [kay_pair](#input\_kay_pair) | Used for old fasion ssh access with user created key-pair by in the AWS Console | `string` | `null` | no |
+| <a name="input_disks"></a> [disks](#input\_disks) | List of Disk to configure the  | `list(object({name        = string,size        = number,disk_type   = string,mount_point = string}))` | `[{name        = "/dev/sdb",size        = 15,disk_type   = "gp3",mount_point = "/mnt"}]` | no |
 
-<details>
-<summary>Initiating a server with multiple Zesty Disks (max 3)</summary>
-If you with to add more than one Zesty disks (up to three are supported), here's an expanded configuration:
+## Authors
 
-```hcl
-resource "aws_instance" "this" {
-  ami           = "ami-063d4ab14480ac177"
-  instance_type = "t3.micro"
-  user_data = module.zesty_disk.user_data
+Module is maintained by [Omer Hamerman](https://github.com/omerxx) with help from [Regev Agabi](https://github.com/ragabi-ops).
 
-  ebs_block_device {
-    volume_type = "gp2"
-    device_name = var.zesty_disk_config.device_name
-    volume_size = var.zesty_disk_config.initial_size
-    tags        = var.volume_tags
-    snapshot_id = module.zesty_disk.snapshot_id
-  }
-
-  ebs_block_device {
-    volume_type = "gp2"
-    device_name = var.zesty_disk_config_2.device_name
-    volume_size = var.zesty_disk_config_2.initial_size
-    tags        = var.volume_tags
-    snapshot_id = module.zesty_disk.snapshot_id
-  }
-
-  ebs_block_device {
-    volume_type = "gp2"
-    device_name = var.zesty_disk_config_3.device_name
-    volume_size = var.zesty_disk_config_3.initial_size
-    tags        = var.volume_tags
-    snapshot_id = module.zesty_disk.snapshot_id
-  }
-
-  lifecycle {
-    ignore_changes = [ebs_block_device]
-  }
-}
-
-module "zesty_disk" {
-  source            = "github.com/zesty-co/terraform-zesty-disk-config"
-  aws_region        = var.aws_region
-  zesty_disk_config = var.zesty_disk_config
-}
-```
-
-This would also require an additional configuration for the additional disk(s):
-
-```hcl
-# variables.tf:
-# Note that api_key is not required as the same key can be used from the first disk config object
-
-variable "zesty_disk_config_2" {
-  type = map(any)
-  default = {
-    mount_point  = ""
-    device_name  = ""
-    initial_size = 15
-  }
-}
-
-variable "zesty_disk_config_3" {
-  type = map(any)
-  default = {
-    mount_point  = ""
-    device_name  = ""
-    initial_size = 15
-  }
-}
-```
-</details>
-
+![alt text](https://zesty.co/wp-content/uploads/2020/10/cropped-logo-1.png)
