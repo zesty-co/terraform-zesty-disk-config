@@ -127,7 +127,7 @@ module "zesty-disk" {
 | <a name="input_managed_deployment"></a> [managed_deployment](#input\_managed_deployment) | Used to auto deploy EC2 instance with Zesty-Disk Agent | `bool` | `false` | no |
 | <a name="input_enable_ssm"></a> [enable_ssm](#input\_enable_ssm) | Use to create iam-role with SSM-CORE policy for ssm access to the instance only work when [managed_deployment](#input\_managed_deployment) set to true | `bool` | `false` | no |
 | <a name="input_kay_pair"></a> [kay_pair](#input\_kay_pair) | Used for old fasion ssh access with user created key-pair by in the AWS Console | `string` | `null` | no |
-| <a name="input_disks"></a> [disks](#input\_disks) | List of Disk to configure the  | `list(object({name        = string,size        = number,disk_type   = string,mount_point = string}))` | `[{name        = "/dev/sdb",size        = 15,disk_type   = "gp3",mount_point = "/mnt"}]` | no |
+| <a name="input_disks"></a> [disks](#input\_disks) | List of Disk to configure the  | `list(object({name = string,size = number,disk_type = string,mount_point = string}))` | `[{name = "/dev/sdb",size = 15,disk_type = "gp3",mount_point = "/mnt"}]` | no |
 
 ## Authors
 
