@@ -5,18 +5,30 @@ INSTALL_URL="https://static.zesty.co/ZX-InfraStructure-Agent-release/install.sh"
 
 MountPoint=(${join(" ", mount_points)})
 
-MountArray=()
 
 # Get the root volume
-root_volume=$(df | awk '$6 == "/" { print $1 }')
+root_volume=$(mount|grep ' / '|cut -d' ' -f 1 | sed 's/p[0-9]*$//')
 
-# List all block devices, filter out those with partitions, and check if they are unmounted and not the root volume
-while read -r volume; do
-  if ! grep -q "^$volume" /proc/mounts && [ "$volume" != "$root_volume" ]; then
-    echo "Unmounted volume: $volume"
-    MountArray+=("$volume")
-  fi
-done < <(lsblk -dpno NAME,TYPE | awk '$2 == "disk" { print $1 }')
+find_available_device() {
+  requested_size=$1
+  # List all block devices, filter out those with partitions, and check if they are unmounted and not the root volume
+  while read -r volume_size_tuple; do
+    IFS=' ' read -r volume size <<< "$volume_size_tuple"
+    if ! grep -q "^$volume" /proc/mounts && [ "$volume" != "$root_volume" ] && [ "$size" == "$requested_size" ]; then
+      echo "$volume"
+      return
+    fi
+   done < <(lsblk -dpno NAME,TYPE,SIZE | awk '$2 == "disk"  { print $1,$3}')
+}
+
+mount_disks() {
+for mount_size_tuple in "${MountPoint[@]}"; do
+  IFS=' ' read -r mount_name mount_size <<< "$mount_size_tuple"
+  volume_name=$(find_available_device $mount_size)
+  echo "found match for volume $volume_name and mount $mount_name"
+  zestyctl disk mount "$volume_name" "mount_name"
+done
+}
 
 install_agent() {
     if [ -z "$API_KEY" ]; then
@@ -25,12 +37,6 @@ install_agent() {
     curl -s "$INSTALL_URL" | sudo bash -s apikey="$API_KEY"
 }
 
-mount_disks() {
-  for index in "$${!MountPoint[@]}"; do
-    echo Device Name: "$${MountArray[$index]}" '|' Mount Point: "$${MountPoint[$index]}"
-    zmount "$${MountArray[$index]}" "$${MountPoint[$index]}"
-  done
-}
 
 install_agent
 mount_disks
