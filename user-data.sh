@@ -3,7 +3,7 @@
 API_KEY=${api_key}
 INSTALL_URL="https://static.zesty.co/ZX-InfraStructure-Agent-release/install.sh"
 
-MountPoint=(${join(" ", mount_points)})
+MOUNT_POINTS=(${join(" ", mount_points)})
 
 
 # Get the root volume
@@ -22,10 +22,10 @@ find_available_device() {
 }
 
 mount_disks() {
-for mount_size_tuple in "${MountPoint[@]}"; do
-  IFS=' ' read -r mount_name mount_size <<< "$mount_size_tuple"
+for mount_size_tuple in "${MOUNT_POINTS[@]}"; do
+  IFS=',' read -r mount_name mount_size <<< "$mount_size_tuple"
   volume_name=$(find_available_device $mount_size)
-  echo "found match for volume $volume_name and mount $mount_name"
+  echo "Found match for volume $volume_name and mount $mount_name"
   zestyctl disk mount "$volume_name" "mount_name"
 done
 }
