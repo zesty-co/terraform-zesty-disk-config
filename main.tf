@@ -24,7 +24,7 @@ data "cloudinit_config" "config" {
     content_type = "text/x-shellscript"
     content      = templatefile("${path.module}/user-data.sh", {
       api_key      = var.api_key
-      mount_points = [for mount in var.disks : "${mount.mount_point},${mount.size}"]
+      mount_points = [for mount in var.disks : format("%s,%d", mount.mount_point, mount.size)]
     })
   }
 }
