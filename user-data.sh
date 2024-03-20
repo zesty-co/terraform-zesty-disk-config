@@ -14,7 +14,7 @@ find_available_device() {
   # List all block devices, filter out those with partitions, and check if they are unmounted and not the root volume
   while read -r volume_size_tuple; do
     IFS=' ' read -r volume size <<< "$volume_size_tuple"
-    if ! grep -q "^$volume" /proc/mounts && [ "$volume" != "$root_volume" ] && [ "$size" == "$requested_size" ]; then
+    if ! grep -q "^$volume" /proc/mounts && [ "$volume" != "$root_volume" ] && [ "$size" == "${requested_size}G" ]; then
       echo "$volume"
       return
     fi
