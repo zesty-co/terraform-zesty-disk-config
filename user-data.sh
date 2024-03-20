@@ -22,7 +22,7 @@ find_available_device() {
 }
 
 mount_disks() {
-for mount_size_tuple in "${MountPoint[@]}"; do
+for mount_size_tuple in "${MOUNT_POINTS[@]}"; do
   IFS=',' read -r mount_name mount_size <<< "$mount_size_tuple"
   volume_name=$(find_available_device $mount_size)
   echo "Found match for volume $volume_name and mount $mount_name"
