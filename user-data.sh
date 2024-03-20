@@ -23,12 +23,6 @@ find_available_device() {
 
 mount_disks() {
   echo "skip mount_disks for test"
-#for mount_size_tuple in "${MOUNT_POINTS[@]}"; do
-#  IFS=',' read -r mount_name mount_size <<< "$mount_size_tuple"
-#  volume_name=$(find_available_device $mount_size)
-#  echo "Found match for volume $volume_name and mount $mount_name"
-#  zestyctl disk mount "$volume_name" "$mount_name"
-#done
 }
 
 install_agent() {
